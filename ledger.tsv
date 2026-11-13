@@ -12,3 +12,5 @@ rung	date	change	number	before	after	end	note
 2	2026-11-13	four worlds in place of two	mean distance of a drawn part from the sender's, mm	0.21	1.60		worse: a running clip and clips that turn round; largest 160 mm
 2	2026-11-13	four worlds in place of two	share of a tick for one world's wire path	0.030	0.027	0.8 for the whole tick	physics is 0.66 of a tick a world on the interpreted tier
 2	2026-11-13	draw three sends behind where the verdict of four parties is waited for	mean distance of a drawn part from the sender's, mm	1.60	0.48		delay 12 to 18 ticks; largest 160 to 34 mm; a judged point is known one send later than the plan held
+4	2026-11-13	the four as separate programs, sending by UDP to the relay process	pairs of people who see each other through real sockets	0	12	12	tools/clients.exs, 15 s, no load; 1,869 of 1,896 verdicts valid; mean 0.71 mm
+4	2026-11-13	the four as separate programs	pairs seeing with 16 people from the load generator beside them	none	0	12	the relay overran 144 ticks on this Mac and refused 1,777 frames; a finding, not a pass

@@ -7,10 +7,11 @@ The gates that join the parts of the presence slice on a real body, with the vid
 - `tests/byz_gate.gd`: four scripted clients through the router and the observers, with a planted zone, sender and viewer that must each be named.
 - `tests/body_gate.gd`, `tests/body_lib.gd`, `tests/body_movie.gd`: one real body from one world to another, through the codec, router, observers and curve, and the movie of it.
 - `tests/world_gate.gd` and `tests/world_lib.gd`: four bodies in one process, each sender judged by four parties, with a planted zone, sender and viewer named on real bodies.
+- `tests/client.gd` and `tools/clients.exs`: the four as four programs, sending by UDP to the relay process, with the load generator beside them.
 - `tests/parts.gd`: where the sibling parts are. They are looked for beside this repository, or under `PARTS`.
 - `tools/gates.exs` runs every part's gates and their controls. `tools/body.exs` runs the body gate and its controls.
 - `ledger.tsv` and `docs/ledger.md`: one row for each number a rung set out to move, with the value the end asks for beside it.
-- `docs/wire.md`, `docs/gates.md`, `docs/body.md`, `docs/world.md`, `docs/frame-sizes.md`.
+- `docs/wire.md`, `docs/gates.md`, `docs/body.md`, `docs/world.md`, `docs/clients.md`, `docs/frame-sizes.md`.
 
     GODOT=<double editor> PACKET_GOLDEN=<packet_golden.csv> MUJOCO_ELF=<mujoco.double.elf> elixir tools/gates.exs
     GODOT=<double editor> ANNY_FOLLOW=<follower repo> MUJOCO_ELF=<mujoco.double.elf> ANNY_GLB=<anny_base.glb> CLIPS=<clips dir> elixir tools/body.exs
