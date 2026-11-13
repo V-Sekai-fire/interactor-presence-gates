@@ -15,9 +15,9 @@ the other three takes the two frames out and checks their size, ids and tag.
 A frame that passes is held, not drawn. At the end of each interval of 6 ticks every observer
 closes: it gives a verdict on each other sender from four reports, the sender's own hash, its
 own, and the two other viewers'. A verdict of valid is about the send before, and only then do
-that send's points go into the viewer's curves. A viewer draws 12 ticks behind, and a point
-arrives in its curve one to five ticks before the view time reaches it, so nothing is drawn that
-four parties did not agree on and nothing is shown and then taken back.
+that send's points go into the viewer's curves, so nothing is drawn that four parties did not agree
+on and nothing is shown and then taken back. A viewer draws 18 ticks behind, three sends; see
+below for why it is not two.
 
 The run is 960 ticks, 15 seconds.
 
@@ -28,19 +28,31 @@ The run is 960 ticks, 15 seconds.
 | Pairs of people who see each other | 12 of 12 |
 | Verdicts that were valid | 1,896 of 1,896 |
 | Party named | nobody |
-| Mean distance of a drawn part from the sender's 12 ticks before | 1.60 mm |
-| Largest distance | 160 mm |
-| Largest distance between points of a rotation star | 165 mm |
-| Share of a tick for one world's codec, router, observers and curves | 0.027 |
+| Mean distance of a drawn part from the sender's 18 ticks before | 0.48 mm |
+| Largest distance | 34 mm |
+| Largest distance between points of a rotation star | 35 mm |
+| Share of a tick for one world's codec, router, observers and curves | 0.030 |
 | Share of a tick for one world's physics | 0.66 |
 
 A pair sees each other when all 21 parts were drawn and their mean distance is under 5 mm.
 
-The largest distance is far worse than rung 1's 9 mm and the mean is seven times its 0.21 mm.
-Two things are new in this run. One clip is a run, which is faster than a walk. And each clip
-turns round at its end, where every velocity changes sign within one tick; a curve through
-points 6 ticks apart cannot follow that, and no real body does it. The mean is the fairer
-number and the largest is kept as it is.
+## Three sends behind, not two
+
+The plan held that a viewer could draw two sends behind and still draw only judged points,
+because the verdict on a send arrives with the next send. That is one send short. A verdict
+needs the other viewers' hashes of that send, and those travel in their own next frames. So the
+points of send `n - 1` are known to be valid at the end of interval `n`, and a segment needs
+its far end before the view time passes its near end. With a delay of 12 ticks the far end came
+up to five ticks late, every part coasted and rejoined at every send, and the mean distance was
+1.60 mm with a largest of 160 mm. With 18 ticks the far end is always there: 0.48 mm and 34 mm.
+
+So judged drawing costs 281 ms of delay, not 188. The two rules of the plan, 12 ticks behind and
+from valid points only, cannot both hold, and the gate keeps the second.
+
+The mean is still more than rung 1's 0.21 mm and the largest more than its 9 mm. One clip is a
+run, which is faster than a walk. And each clip turns round at its end, where every velocity
+changes sign within one tick; a curve through points 6 ticks apart cannot follow that, and no
+real body does it.
 
 The physics of one body takes two thirds of a tick on the interpreted tier, so four bodies do
 not fit one process at 64 ticks a second. They are not meant to: each client has its own.

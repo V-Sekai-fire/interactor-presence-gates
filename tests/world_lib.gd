@@ -4,7 +4,7 @@ extends RefCounted
 const SLOTS := 4
 const SEND_TICKS := 6
 const PHASE := [0, 1, 3, 4]
-const DELAY := 12
+const DELAY := 18
 const PEOPLE := [7, 9, 12, 30]
 const TICK_HZ := 64.0
 const PLANT_AT := 300
