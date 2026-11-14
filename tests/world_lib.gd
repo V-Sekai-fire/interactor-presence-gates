@@ -8,6 +8,7 @@ const DELAY := 18
 const PEOPLE := [7, 9, 12, 30]
 const TICK_HZ := 64.0
 const PLANT_AT := 300
+const GONE_TICKS := 320
 const ORIGIN := [4000000000000000000, -8000000000000000000, 6500000000000000000]
 const CLIPS := ["walk", "idle", "walk_back", "run"]
 const STAND := [Vector2(0, 0), Vector2(0, 1.6), Vector2(0, -1.6), Vector2(0, 3.2)]
@@ -22,6 +23,10 @@ var parts: Object
 var control := ""
 var usec := 0
 var physics: Object
+var engines: Array = []
+var poses: Array = [null, null, null, null]
+var elf_bytes := PackedByteArray()
+var loaded: Array = [false, false, false, false]
 var bodies := PackedStringArray()
 var zero := PackedFloat64Array()
 var ids := PackedInt32Array()
@@ -37,6 +42,7 @@ var history: Array = []
 var pending: Array = []
 var turns: Array = []
 var has: Array = []
+var fresh: Array = []
 var now: Array = []
 var seen: Array = []
 var live := false
@@ -84,13 +90,17 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 	here = presence
 	parts = load(here.path_join("tests/parts.gd"))
 	control = with_control
-	physics = ClassDB.instantiate("Sandbox")
-	physics.set_memory_max(1024)
-	physics.set_allocations_max(1 << 22)
-	physics.set_unboxed_arguments(true)
-	physics.set("execution_timeout", 4000000)
-	physics.load_buffer(FileAccess.get_file_as_bytes(elf))
-	if physics.vmcall("mjc_load_human", -1) != true:
+	elf_bytes = FileAccess.get_file_as_bytes(elf)
+	for s in SLOTS:
+		var e: Object = ClassDB.instantiate("Sandbox")
+		e.set_memory_max(1024)
+		e.set_allocations_max(1 << 22)
+		e.set_unboxed_arguments(true)
+		e.set("execution_timeout", 4000000)
+		engines.append(e)
+	WorkerThreadPool.wait_for_group_task_completion(WorkerThreadPool.add_group_task(_load, SLOTS))
+	physics = engines[0]
+	if loaded.has(false):
 		error = "the model did not build"
 		return false
 	bodies = physics.vmcall("mjc_names", 1)
@@ -127,9 +137,6 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 		c.vmcallv("reset", 63, float(DELAY))
 		observers.append(o)
 		curves.append(c)
-		if physics.vmcall("mjc_person", s) != true:
-			error = "the physics guest refused person %d" % s
-			return false
 		var q := FileAccess.get_file_as_bytes(clip_dir.path_join(CLIPS[s] + ".f64")).to_float64_array()
 		if q.size() < 200 * 86:
 			error = "no clip %s" % CLIPS[s]
@@ -139,6 +146,7 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 		pending.append([{}, {}, {}])
 		turns.append([[], [], []])
 		has.append([0, 0, 0])
+		fresh.append([0, 0, 0])
 		now.append(PackedFloat64Array())
 		seen.append([PackedFloat64Array(), PackedFloat64Array(), PackedFloat64Array()])
 	router.vmcallv("reset")
@@ -146,6 +154,18 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 		router.vmcallv("join", PEOPLE[s])
 	blank.resize(300)
 	return true
+
+
+## Each person's physics is a guest of its own, so the four step on four threads.
+func _load(s: int) -> void:
+	engines[s].load_buffer(elf_bytes)
+	loaded[s] = engines[s].vmcall("mjc_load_human", -1) == true
+
+
+func _forward(s: int) -> void:
+	engines[s].vmcall("mjc_set_qpos", poses[s])
+	engines[s].vmcall("mjc_forward")
+	now[s] = engines[s].vmcall("mjc_bodies")
 
 
 func _qpos(s: int, t: float) -> PackedFloat64Array:
@@ -245,6 +265,7 @@ func _close(t: int) -> void:
 				if turns[v][o].size() > 5:
 					turns[v][o].pop_front()
 				has[v][o] += 1
+				fresh[v][o] = at_tick
 			for key in held.keys():
 				if key < n:
 					held.erase(key)
@@ -254,10 +275,9 @@ func _close(t: int) -> void:
 func step(t: int) -> void:
 	var t0 := Time.get_ticks_usec()
 	for s in SLOTS:
-		physics.vmcall("mjc_person", s)
-		physics.vmcall("mjc_set_qpos", _qpos(s, t / TICK_HZ))
-		physics.vmcall("mjc_forward")
-		now[s] = physics.vmcall("mjc_bodies")
+		poses[s] = _qpos(s, t / TICK_HZ)
+	WorkerThreadPool.wait_for_group_task_completion(WorkerThreadPool.add_group_task(_forward, SLOTS))
+	for s in SLOTS:
 		history[s].append(now[s])
 		if history[s].size() > DELAY + SEND_TICKS + 4:
 			history[s].pop_front()
@@ -346,3 +366,8 @@ func named() -> String:
 			if viewers[v] >= 2 and out == "nobody":
 				out = v
 	return out
+
+
+## False once nothing of that person has been agreed on for 5 seconds.
+func present(v: int, o: int, t: int) -> bool:
+	return has[v][o] >= 2 and t - DELAY - fresh[v][o] <= GONE_TICKS
