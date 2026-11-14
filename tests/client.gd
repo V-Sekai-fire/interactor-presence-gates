@@ -4,7 +4,6 @@ extends SceneTree
 const Parts := preload("res://tests/parts.gd")
 const SEND_TICKS := 6
 const PHASE := [0, 1, 3, 4]
-const DELAY := 18
 const PEOPLE := [7, 9, 12, 30]
 const TICK_USEC := 15625.0
 const ORIGIN := [4000000000000000000, -8000000000000000000, 6500000000000000000]
@@ -16,6 +15,9 @@ var slot := 0
 var port := 0
 var epoch := 0.0
 var skew := 0.0
+var relay_host := "127.0.0.1"
+var lag := 0
+var delay := 18
 var physics: Object
 var packets: Object
 var observer: Object
@@ -149,7 +151,7 @@ func _send(t: int) -> void:
 	two.resize(2400)
 	var sealed: PackedByteArray = observer.vmcallv("seal", two.slice(0, 1200), two.slice(1200), t / SEND_TICKS)
 	for half in 2:
-		udp.set_dest_address("127.0.0.1", port + half)
+		udp.set_dest_address(relay_host, port + half)
 		udp.put_packet(sealed.slice(half * 1200, half * 1200 + 1200))
 
 
@@ -166,6 +168,13 @@ func _initialize() -> void:
 	for x in a.slice(7):
 		if x.begins_with("--skew-ppm="):
 			skew = x.trim_prefix("--skew-ppm=").to_float() / 1e6
+	if OS.get_environment("BINTR") != "":
+		ProjectSettings.set_setting("sandbox/binary_translation/enabled", true)
+		ProjectSettings.set_setting("sandbox/binary_translation/cache_dir", OS.get_environment("BINTR"))
+	lag = OS.get_environment("CLOSE_LAG").to_int()
+	delay = 18 + SEND_TICKS * lag
+	if OS.get_environment("RELAY_HOST") != "":
+		relay_host = OS.get_environment("RELAY_HOST")
 	physics = ClassDB.instantiate("Sandbox")
 	physics.set_memory_max(1024)
 	physics.set_allocations_max(1 << 22)
@@ -188,8 +197,8 @@ func _initialize() -> void:
 		return
 	observer.vmcallv("setup", slot, PEOPLE[0], PEOPLE[1], PEOPLE[2], PEOPLE[3])
 	observer.vmcallv("keys", table.slice(2, 34), table.slice(35, 67), table.slice(68, 100))
-	curve.vmcallv("reset", 63, float(DELAY))
-	if udp.bind(48100 + slot, "127.0.0.1") != OK:
+	curve.vmcallv("reset", 63, float(delay))
+	if udp.bind(48100 + slot, "*") != OK:
 		_end("RESULT: ERROR the socket did not bind", 2)
 		return
 
@@ -204,7 +213,7 @@ func _initialize() -> void:
 		var t0 := Time.get_ticks_usec()
 		_receive(closing)
 		_take(closing)
-		while t >= (closing + 1) * SEND_TICKS:
+		while t >= (closing + 1 + lag) * SEND_TICKS:
 			_close(closing)
 			closing += 1
 			_take(closing)
@@ -220,11 +229,11 @@ func _initialize() -> void:
 				sent.put_double(now[ids[p] * 7 + k])
 		if t % SEND_TICKS == PHASE[slot] and history.size() >= 3:
 			_send(t)
-		curve.vmcallv("advance", float(t - DELAY))
+		curve.vmcallv("advance", float(t - delay))
 		for o in 3:
 			if has[o] < 2:
 				continue
-			seen[o].put_double(t - DELAY)
+			seen[o].put_double(t - delay)
 			for p in 21:
 				var d: PackedFloat64Array = curve.vmcallv("drawn", o * 21 + p)
 				for k in 3:
