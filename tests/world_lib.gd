@@ -90,6 +90,9 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 	here = presence
 	parts = load(here.path_join("tests/parts.gd"))
 	control = with_control
+	if OS.get_environment("BINTR") != "":
+		ProjectSettings.set_setting("sandbox/binary_translation/enabled", true)
+		ProjectSettings.set_setting("sandbox/binary_translation/cache_dir", OS.get_environment("BINTR"))
 	elf_bytes = FileAccess.get_file_as_bytes(elf)
 	for s in SLOTS:
 		var e: Object = ClassDB.instantiate("Sandbox")
@@ -371,3 +374,7 @@ func named() -> String:
 ## False once nothing of that person has been agreed on for 5 seconds.
 func present(v: int, o: int, t: int) -> bool:
 	return has[v][o] >= 2 and t - DELAY - fresh[v][o] <= GONE_TICKS
+
+
+func tier() -> String:
+	return "translated" if engines[0].is_binary_translated() else "interpreted"

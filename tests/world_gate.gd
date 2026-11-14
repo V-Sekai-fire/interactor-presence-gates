@@ -73,7 +73,7 @@ func _initialize() -> void:
 	for key in keys:
 		print("NAMED %s: %d sends" % [key, lib.tally[key]])
 	var named: String = lib.named()
-	print("WORLD control=%s ticks=%d sends=%d judged=%d valid=%d" % [control if control != "" else "none", lib.ticks, lib.sends, lib.judged, lib.valid])
+	print("WORLD control=%s tier=%s ticks=%d sends=%d judged=%d valid=%d" % [control if control != "" else "none", lib.tier(), lib.ticks, lib.sends, lib.judged, lib.valid])
 	print("LEDGER pairs_seeing=%d err_max_mm=%.3f err_mean_mm=%.3f star_max_mm=%.3f named=%s wire_share_of_tick_a_world=%.3f physics_share_a_world=%.3f" % [pairs, worst, total / maxi(n, 1), worst_star, named, lib.usec / float(lib.ticks) / 4.0 / TICK_USEC, lib.physics_usec / float(lib.ticks) / 4.0 / TICK_USEC])
 	if control == "":
 		if pairs != 12 or named != "nobody" or lib.valid != lib.judged:
