@@ -47,7 +47,7 @@ and rejoins after each, which is where the largest distance comes from.
 | Control | What is planted | Pairs seeing |
 | --- | --- | --- |
 | `half` | the relay sends every frame from the socket of the other half | 0 of 12, with 1,884 frames refused |
-| `drift` | the client in slot 3 counts its ticks 2% fast | 3 of 12 |
+| `drift` | the client in slot 3 counts its ticks 2% fast | 9 of 12: the three views that client has of the others are lost |
 
 ## What the run taught
 
@@ -69,6 +69,23 @@ closer than five to it.
 And this machine cannot say what the relay's maximum is. One loopback datagram costs it about
 0.39 ms, so a zone of four with 16 others already asks for a tick and a half of sending. The
 maximum is a question for a Linux machine.
+
+## After the two were mended
+
+Both faults above were mended, one change each. The relay takes one frame in 5 ticks with a
+burst of two and counts its ticks by the wall. An observer makes its verdict from three reports
+when the fourth party gives none.
+
+| Run | Pairs seeing before | Pairs seeing after |
+| --- | --- | --- |
+| the four alone | 12 | 12 |
+| beside 16 people of the load generator | 0 | 12 |
+| beside 64 people | 0 | 12 |
+| one client with a clock 2% fast | 3 | 9 |
+
+Beside 64 people 1,613 of 1,896 verdicts were whole and valid and the mean distance rose to
+2.3 mm, so load still costs sight; it no longer takes it away. The relay refused no frame in any
+of these runs.
 
 ## Not here
 

@@ -123,7 +123,7 @@ func _close(closing: int) -> void:
 			var key := "%d about %d" % [verdicts[o], sender]
 			tally[key] = tally.get(key, 0) + 1
 		var book: Dictionary = pending[o]
-		if verdicts[o] == 0 and book.has(closing - 1) and book[closing - 1].size() == 21:
+		if (verdicts[o] == 0 or verdicts[o] >= 10) and book.has(closing - 1) and book[closing - 1].size() == 21:
 			for pt in book[closing - 1]:
 				var p: int = int(pt[0]) - 2000000 - PEOPLE[sender] * 21
 				curve.vmcallv("put", o * 21 + p, pt[1], pt[2], pt[3], pt[4], pt[9], pt[10], pt[11])

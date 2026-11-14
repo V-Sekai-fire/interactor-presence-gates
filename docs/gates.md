@@ -34,8 +34,8 @@ the frame the guest sees.
 Four scripted clients, in slots 0 to 3, each send 21 synthetic Packets every 6 ticks. They do not
 send on the same tick: slot `s` sends on the ticks where `t % 6` is `PHASE[s]`, and `PHASE` is
 0, 1, 3, 4, so no two senders share a tick and no tick has more than two frames for one viewer. The
-router does not ask when a sender sends: a half is open again 5 ticks after the frame it last
-took, on the router's own clock. The first
+router does not ask when a sender sends: a half takes one frame in 5 ticks with a burst of two,
+on the router's own clock. The first
 half of a run stands still and the second half walks. Without `--ticks` a run is 19,200 ticks,
 5 minutes of the clock.
 

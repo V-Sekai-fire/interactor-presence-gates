@@ -42,7 +42,7 @@ The zone. It reads no byte of a frame.
 | `join(person) -> int` | the slot the person holds, or -1 when all four are taken. A person who is already seated gets the same slot |
 | `leave(person) -> bool` | frees the slot and blanks its frames |
 | `person_at(slot) -> int` | the person in a slot, or -1 |
-| `put(slot, half, frame) -> bool` | stores one frame. A half is open again 5 ticks after the frame it last took (`OPEN_TICKS`), counted on the relay's own clock from that frame and from nothing else. A frame that comes sooner is counted in `unread_count` and not stored, so a flood makes the router do less |
+| `put(slot, half, frame) -> bool` | stores one frame. A half takes one frame in 5 ticks (`OPEN_TICKS`) with a burst of two, on the relay's own clock. Each half has a due time. A frame is refused while now is more than 5 ticks short of the due time; a frame that is taken moves the due time 5 ticks on from now, or from the due time if that is later. A frame that comes sooner is counted in `unread_count` and not stored, so a flood makes the router do less |
 | `frame(viewer, k) -> PackedByteArray` | frame `k` of 6 for a viewer: the two halves of each other slot, in slot order. An empty slot gives a blank frame of 1,200 zero bytes |
 | `tick() -> int` | the pass that runs at every tick. It visits all four slots whoever is present and empties a slot that has been silent for more than 192 ticks |
 
@@ -100,6 +100,20 @@ forged frame where the others see a valid one; from the viewer's side that canno
 relay that altered the frame. And a relay that is handed one pair key can alter a frame for that
 one viewer under a valid tag. The hashes then differ at that viewer alone, so the honest majority
 names the viewer and not the relay. A leaked key lets the relay frame a member.
+
+## When one party is silent
+
+A verdict of four reports waits for the sender's hash, this client's own, and the hashes of the
+two other viewers. If one of those two gives none for a send, because it has left, lost a frame
+or counts its sends wrongly, the verdict is made from three: when the sender's hash, this
+client's and the one other viewer's all agree, the verdict is `SILENT` plus the slot that was
+missing, 20 to 23. Three reports that do not all agree leave the verdict incomplete, since
+three parties cannot say who is wrong.
+
+A viewer draws a send when at least three parties agree on it: a verdict of 0, of `VIEWER` plus
+a slot, which names the one viewer that differed, or of `SILENT` plus a slot. Without this rule
+one client with a wrong clock blinded everyone: no verdict was ever whole, and nothing was
+drawn. With it the three that agree carry on and the fourth is named.
 
 ## What the checks do not show
 

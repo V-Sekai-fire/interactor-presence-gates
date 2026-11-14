@@ -65,12 +65,15 @@ Each control is planted from tick 300 and must be named.
 | --- | --- | --- | --- |
 | `alter` | the zone flips one bit of slot 1's first frame for every viewer | `forged:1` | 9 |
 | `halves` | the sender in slot 3 sends the second frame of the send before | `sender:3` | 9 |
-| `stale` | viewer 2 keeps an old first frame of slot 0 | `viewer:2` | 9 |
+| `stale` | viewer 2 keeps an old first frame of slot 0 | `viewer:2` | 11 |
+| `silent` | the client in slot 2 stops sending | `silent:2` | 9 |
 
-In each case the three pairs that lose sight are the ones the planted party is part of, and the
-other nine go on.
+Under `alter`, `halves` and `silent` the three pairs that lose sight are the three views of the
+planted sender, and the other nine go on. Under `stale` only the stale viewer's own view of slot 0
+is lost. Before a verdict could be made from three reports, `stale` cost three pairs and a silent
+client left only three of twelve.
 
-    godot --headless --path . -s tests/world_gate.gd -- <mujoco.double.elf> <clips dir> [--control=alter|halves|stale]
+    godot --headless --path . -s tests/world_gate.gd -- <mujoco.double.elf> <clips dir> [--control=alter|halves|stale|silent]
 
 ## Not here
 

@@ -14,7 +14,7 @@ const STAND := [Vector2(0, 0), Vector2(0, 1.6), Vector2(0, -1.6), Vector2(0, 3.2
 const CODES := {0: "valid", 1: "incomplete", 2: "sender", 3: "sender-or-zone", 4: "zone", 5: "me"}
 const STALE_OLD := "\tgot_ok[k] = false\n\tgot[k] = frame\n"
 const STALE_NEW := "\tgot_ok[k] = false\n\tif k == 0 and got[0].size() == FRAME_BYTES and frame.decode_u32(OFF_HLC) >> 8 >= 300:\n\t\tframe = got[0]\n\tgot[k] = frame\n"
-const CONTROLS := {"alter": "forged:1", "halves": "sender:3", "stale": "viewer:2"}
+const CONTROLS := {"alter": "forged:1", "halves": "sender:3", "stale": "viewer:2", "silent": "silent:2"}
 
 var error := ""
 var here := ""
@@ -229,10 +229,10 @@ func _close(t: int) -> void:
 				if verdicts[o] == 0:
 					valid += 1
 				else:
-					var key := "%s about %d by %d" % [CODES.get(verdicts[o], "viewer:%d" % (verdicts[o] - 10)), sender, v]
+					var key := "%s about %d by %d" % [CODES.get(verdicts[o], ("viewer:%d" % (verdicts[o] - 10)) if verdicts[o] < 20 else ("silent:%d" % (verdicts[o] - 20))), sender, v]
 					tally[key] = tally.get(key, 0) + 1
 			var held: Dictionary = pending[v][o]
-			if verdicts[o] == 0 and held.has(n - 1):
+			if (verdicts[o] == 0 or verdicts[o] >= 10) and held.has(n - 1):
 				var turn: Array = []
 				turn.resize(21)
 				var at_tick := 0
@@ -263,6 +263,8 @@ func step(t: int) -> void:
 			history[s].pop_front()
 	physics_usec += Time.get_ticks_usec() - t0
 	for s in SLOTS:
+		if control == "silent" and s == 2 and t >= PLANT_AT:
+			continue
 		if t % SEND_TICKS == PHASE[s] and history[s].size() >= 3:
 			_send(s, t)
 	_call(router, ["tick"])
@@ -318,6 +320,13 @@ func named() -> String:
 	if forged.max() > 0:
 		return "forged:%d" % forged.find(forged.max())
 	var out := "nobody"
+	var quiet := {}
+	for key in tally:
+		if key.begins_with("silent:"):
+			quiet[key.split(" ")[0]] = quiet.get(key.split(" ")[0], 0) + 1
+	for q in quiet:
+		if quiet[q] >= 2:
+			return q
 	for sender in SLOTS:
 		var count := {"sender": 0, "sender-or-zone": 0, "zone": 0}
 		var viewers := {}

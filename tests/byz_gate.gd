@@ -226,7 +226,7 @@ func _init() -> void:
 				if v[o] == 0:
 					valid += 1
 				else:
-					var name: String = CODES.get(v[o], "viewer:%d" % (v[o] - 10))
+					var name: String = CODES.get(v[o], ("viewer:%d" % (v[o] - 10)) if v[o] < 20 else ("silent:%d" % (v[o] - 20)))
 					var key := "%s about %d by %d" % [name, sender, s]
 					tally[key] = tally.get(key, 0) + 1
 		observer_usec += Time.get_ticks_usec() - t2
