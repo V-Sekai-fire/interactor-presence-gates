@@ -93,8 +93,8 @@ func build(presence: String, elf: String, glb: String, with_control: String) -> 
 		error = sender.error + viewer.error
 		return false
 	var names: Array = []
-	for line in FileAccess.get_file_as_string(parts.dir(here, "packets").path_join("data/parts.tsv")).split("\n", false).slice(1):
-		names.append(line.split("\t")[1])
+	for part in JSON.parse_string(FileAccess.get_file_as_string(parts.dir(here, "packets").path_join("data/parts.yamlld")))["parts"]:
+		names.append(part["body"])
 	var sorted_names := names.duplicate()
 	sorted_names.sort()
 	var driven := Array(sender.parts)

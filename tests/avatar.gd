@@ -53,11 +53,10 @@ func build(follow_dir: String, glb: String, bodies: PackedStringArray, zero: Pac
 		var q := g.basis.get_rotation_quaternion()
 		rest.append_array([g.origin.x, g.origin.y, g.origin.z, q.x, q.y, q.z, q.w])
 	var drive := PackedInt32Array()
-	for line in FileAccess.get_file_as_string(follow_dir.path_join("data/drive.tsv")).split("\n", false).slice(1):
-		var f := line.split("\t", true)
-		var row := [names.find(f[0]), bodies.find(f[1]), -1, -1, -1, -1]
-		if f[2] != "":
-			row = [row[0], row[1], names.find(f[2]), names.find(f[3]), bodies.find(f[4]), bodies.find(f[5])]
+	for f in JSON.parse_string(FileAccess.get_file_as_string(follow_dir.path_join("data/drive.yamlld")))["rows"]:
+		var row := [names.find(f["anny_bone"]), bodies.find(f["mujoco_body"]), -1, -1, -1, -1]
+		if f["anny_from"] != "":
+			row = [row[0], row[1], names.find(f["anny_from"]), names.find(f["anny_to"]), bodies.find(f["mujoco_from"]), bodies.find(f["mujoco_to"])]
 		drive.append_array(row)
 	var hips := PackedInt32Array([names.find(HIP_BONES[0]), names.find(HIP_BONES[1]), bodies.find(HIP_BODIES[0]), bodies.find(HIP_BODIES[1])])
 	var script: Object = ClassDB.instantiate("SafeGDScript")
