@@ -1,6 +1,6 @@
 # A body on the wire
 
-This page covers `packets.sgd`, `data/parts.tsv` and the gate that sends one real body from one
+This page covers `packets.sgd`, `data/parts.yamlld` and the gate that sends one real body from one
 world to another. It is rung 1 of the ladder in `ledger.tsv`.
 
 ## The run

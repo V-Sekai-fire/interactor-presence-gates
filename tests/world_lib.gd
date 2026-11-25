@@ -110,11 +110,11 @@ func build(presence: String, elf: String, clip_dir: String, with_control: String
 	physics.vmcall("mjc_forward")
 	zero = physics.vmcall("mjc_bodies")
 	var driven := {}
-	for line in FileAccess.get_file_as_string(parts.dir(here, "follow").path_join("data/drive.tsv")).split("\n", false).slice(1):
-		driven[line.split("\t")[1]] = true
+	for row in JSON.parse_string(FileAccess.get_file_as_string(parts.dir(here, "follow").path_join("data/drive.yamlld")))["rows"]:
+		driven[row["mujoco_body"]] = true
 	var names: Array = []
-	for line in FileAccess.get_file_as_string(parts.dir(here, "packets").path_join("data/parts.tsv")).split("\n", false).slice(1):
-		names.append(line.split("\t")[1])
+	for part in JSON.parse_string(FileAccess.get_file_as_string(parts.dir(here, "packets").path_join("data/parts.yamlld")))["parts"]:
+		names.append(part["body"])
 	if names.size() != 21 or driven.size() != 21:
 		error = "the part table is not 21 bodies"
 		return false

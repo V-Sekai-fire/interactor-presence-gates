@@ -185,8 +185,8 @@ func _initialize() -> void:
 		_end("RESULT: ERROR the model did not build", 2)
 		return
 	var bodies: PackedStringArray = physics.vmcall("mjc_names", 1)
-	for line in FileAccess.get_file_as_string(Parts.dir(here, "packets").path_join("data/parts.tsv")).split("\n", false).slice(1):
-		ids.append(bodies.find(line.split("\t")[1]))
+	for part in JSON.parse_string(FileAccess.get_file_as_string(Parts.dir(here, "packets").path_join("data/parts.yamlld")))["parts"]:
+		ids.append(bodies.find(part["body"]))
 	clip = FileAccess.get_file_as_bytes(String(a[5]).path_join(CLIPS[slot] + ".f64")).to_float64_array()
 	packets = _guest("packets")
 	observer = _guest("observer")
